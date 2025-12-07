@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Investigation: {{ fraud_context.transaction_id }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Neovis.js via CDN -->
+    <script src="https://unpkg.com/neovis.js@2.0.2"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Fraud Investigation System</h1>
+            <h2>Transaction: {{ fraud_context.transaction_id }}</h2>
+        </header>
+
+        <main class="dashboard">
+            <section class="graph-view">
+                <div id="viz"></div>
+            </section>
+
+            <aside class="analysis-panel">
+                <div class="card">
+                    <h3>Fraud Status</h3>
+                    {% if fraud_context.is_suspicious %}
+                        <div class="alert danger">SUSPICIOUS</div>
+                    {% else %}
+                        <div class="alert success">CLEARED</div>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Explanation</h3>
+                    {% if fraud_context.reasons %}
+                        <ul class="reasons-list">
+                            {% for reason in fraud_context.reasons %}
+                                <li>{{ reason }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No specific fraud patterns detected.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>GDS Metrics</h3>
+                    <div class="metrics">
+                        <p><strong>Sender Rank:</strong> {{ "%.4f"|format(fraud_context.gds_scores.get('sender_rank', 0)) }}</p>
+                        <p><strong>Receiver Rank:</strong> {{ "%.4f"|format(fraud_context.gds_scores.get('receiver_rank', 0)) }}</p>
+                        <p><strong>Community:</strong> {{ fraud_context.gds_scores.get('sender_community', 'N/A') }}</p>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <script>
+        const viz = new NeoVis.default({
+            container_id: "viz",
+            server_url: "{{ neo4j_uri }}",
+            server_user: "{{ neo4j_user }}",
+            server_password: "{{ neo4j_password }}",
+            labels: {
+                "Account": {
+                    "caption": "name",
+                    "size": "rankScore",
+                    "community": "communityId"
+                }
+            },
+            relationships: {
+                "TRANSACTION": {
+                    "thickness": "amount",
+                    "caption": false
+                }
+            },
+            initial_cypher: `{{ cypher_query | safe }}`
+        });
+
+        viz.render();
+    </script>
+</body>
+</html>

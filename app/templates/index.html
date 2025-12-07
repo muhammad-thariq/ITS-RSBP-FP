@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fraud Detection System</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+  <div class="landing-container">
+    <div class="landing-card">
+      <h1>Fraud Detection System</h1>
+      <p>Enter a Transaction ID to begin investigation</p>
+
+      <form action="/investigation/redirect" method="get" id="searchForm">
+        <div class="input-group">
+          <input type="text" id="transactionId" name="transaction_id" placeholder="e.g. TX123456" required>
+          <button type="submit">Investigate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('searchForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const txId = document.getElementById('transactionId').value;
+      if (txId) {
+        window.location.href = `/investigation/${txId}`;
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,150 @@
+:root {
+    --primary-color: #2c3e50;
+    --danger-color: #e74c3c;
+    --success-color: #27ae60;
+    --bg-color: #f5f6fa;
+    --card-bg: #ffffff;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: #333;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 20px;
+    height: 80vh;
+}
+
+.graph-view {
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+#viz {
+    width: 100%;
+    height: 100%;
+}
+
+.analysis-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.card {
+    background: var(--card-bg);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.alert {
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+}
+
+.alert.danger {
+    background-color: var(--danger-color);
+}
+
+.alert.success {
+    background-color: var(--success-color);
+}
+
+.reasons-list {
+    padding-left: 20px;
+}
+
+.reasons-list li {
+    margin-bottom: 5px;
+}
+
+.metrics p {
+    margin: 5px 0;
+}
+
+/* Landing Page Styles */
+.landing-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+}
+
+.landing-card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+}
+
+.landing-card h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.landing-card p {
+    color: #7f8c8d;
+    margin-bottom: 30px;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #eee;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.input-group button {
+    padding: 12px 24px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.input-group button:hover {
+    background-color: #2980b9;
+}
