@@ -23,8 +23,8 @@
             <aside class="analysis-panel">
                 <div class="card">
                     <h3>Fraud Status</h3>
-                    {% if fraud_context.is_suspicious %}
-                        <div class="alert danger">SUSPICIOUS</div>
+                    {% if fraud_status == "FRAUD" %}
+                        <div class="alert danger">FRAUD</div>
                     {% else %}
                         <div class="alert success">CLEARED</div>
                     {% endif %}

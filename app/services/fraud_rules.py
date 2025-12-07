@@ -63,51 +63,72 @@ class FraudRules:
                 return f"Circular Flow Alert: Cycle of length {record['path_len'] + 1} detected involving this transaction."
             return None
 
-    def get_gds_scores(self, transaction_id):
-        """
-        Fetch Louvain Community ID and PageRank Score for the sender and receiver.
-        """
+    def get_gds_scores(self, tx_id: str):
         query = """
-        MATCH (sender:Account)-[t:TRANSACTION {id: $tx_id}]->(receiver:Account)
-        RETURN sender.communityId as sender_community, sender.rankScore as sender_rank,
-               receiver.communityId as receiver_community, receiver.rankScore as receiver_rank
+        MATCH (s:Client)-[t:TRANSACTED {txId: $txId}]->(r:Client)
+        RETURN 
+            s.pagerankScore AS sender_rank,
+            s.communityId   AS sender_community,
+            r.pagerankScore AS receiver_rank,
+            r.communityId   AS receiver_community
         """
         with self.graph_service.driver.session() as session:
-            result = session.run(query, tx_id=transaction_id)
+            result = session.run(query, txId=tx_id)
             record = result.single()
-            if record:
-                return {
-                    "sender_community": record["sender_community"],
-                    "sender_rank": record["sender_rank"],
-                    "receiver_community": record["receiver_community"],
-                    "receiver_rank": record["receiver_rank"]
-                }
-            return {}
 
-    def explain_fraud(self, transaction_id):
-        reasons = []
-        
-        # Check Rules
-        fan_in = self.detect_fan_in(transaction_id)
-        if fan_in:
-            reasons.append(fan_in)
-            
-        circular = self.detect_circular_flow(transaction_id)
-        if circular:
-            reasons.append(circular)
-            
-        # Check GDS Scores (Heuristic: High PageRank + High Community Modularity might indicate hubs)
-        scores = self.get_gds_scores(transaction_id)
-        if scores:
-            reasons.append(f"GDS Analysis: Sender Rank: {scores.get('sender_rank', 0):.4f}, Receiver Rank: {scores.get('receiver_rank', 0):.4f}")
-            if scores.get('sender_community') == scores.get('receiver_community'):
-                 reasons.append(f"Community: Both parties are in Community {scores.get('sender_community')}")
+        if record:
+            return dict(record)
 
         return {
-            "transaction_id": transaction_id,
-            "is_suspicious": bool(fan_in or circular),
-            "reasons": reasons,
-            "gds_scores": scores
+            "sender_rank": 0,
+            "receiver_rank": 0,
+            "sender_community": "N/A",
+            "receiver_community": "N/A"
         }
+
+
+    def explain_fraud(self, tx_id: str):
+        query = """
+        MATCH (s:Client)-[t:TRANSACTED {txId: $txId}]->(r:Client)
+        RETURN 
+            s.id AS sender,
+            r.id AS receiver,
+            t.amount AS amount,
+            t.type AS type,
+            t.step AS step,
+            t.isFraud AS isFraud,
+            coalesce(t.ruleFlaggedFraud, false) AS ruleFlaggedFraud
+        """
+
+        with self.graph_service.driver.session() as session:
+            result = session.run(query, txId=tx_id)
+            record = result.single()
+
+        if not record:
+            return {
+                "status": "NOT_FOUND",
+                "explanation": "Transaction ID not found in graph.",
+                "gds_scores": {},
+            }
+
+        # ✅ FETCH GDS SCORES
+        gds_scores = self.get_gds_scores(tx_id)
+
+        if record["isFraud"] == 1 or record["ruleFlaggedFraud"]:
+            return {
+                "status": "FRAUD",
+                "explanation": "Transaction matches fraud indicators.",
+                "data": dict(record),
+                "gds_scores": gds_scores
+            }
+
+        return {
+            "status": "CLEARED",
+            "explanation": "No specific fraud patterns detected.",
+            "data": dict(record),
+            "gds_scores": gds_scores
+        }
+
+
 
 fraud_rules = FraudRules(graph_service)
